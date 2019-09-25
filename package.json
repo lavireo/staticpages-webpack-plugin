@@ -1,6 +1,6 @@
 {
   "name": "staticpages-webpack-plugin",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Compile to static html files",
   "repository": "https://github.com/lavireo/staticpages-webpack-plugin.git",
   "author": "Maurice T. Meyer <maurice@lavireo.com>",
@@ -22,6 +22,7 @@
     "@babel/core": "^7.6.2",
     "@babel/preset-react": "^7.0.0",
     "@types/node": "^12.7.7",
+    "@types/reach__router": "^1.2.5",
     "@types/react": "^16.9.3",
     "@types/react-dom": "^16.9.0",
     "@types/react-router-dom": "^4.3.5",
@@ -36,6 +37,7 @@
     "webpack-cli": "^3.3.9"
   },
   "dependencies": {
+    "@reach/router": "^1.2.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "styled-components": "^4.4.0",
