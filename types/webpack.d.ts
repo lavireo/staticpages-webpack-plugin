@@ -41,6 +41,7 @@ declare module 'webpack'
 
 /**
  * Internal Plug-Ins */
+declare module 'webpack/lib/ExternalsPlugin';
 declare module 'webpack/lib/node/NodeTargetPlugin';
 declare module 'webpack/lib/node/NodeTemplatePlugin';
 declare module 'webpack/lib/LoaderTargetPlugin';

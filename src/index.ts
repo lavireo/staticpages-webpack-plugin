@@ -32,20 +32,15 @@ const ERRORS            = {};
 const EXT               = ['js', 'ts', 'jsx', 'tsx'];
 const EXT_REG           = new RegExp(`\\.+(${EXT.join('|')})$`);
 
-import * as _              from 'underscore';
-import * as vm             from 'vm';
-import * as fs             from 'fs';
-import * as path           from 'path';
-import { promisify }       from 'util';
-import { Chunk, Compiler } from 'webpack';
-import { RawSource }       from 'webpack-sources';
+import * as _                      from 'underscore';
+import * as vm                     from 'vm';
+import * as path                   from 'path';
+import { Chunk, Compiler }         from 'webpack';
+import { RawSource }               from 'webpack-sources';
 
-import { render }        from './render';
-import { ChildCompiler } from './compiler';
-
-const stat     = promisify(fs.stat);
-const readdir  = promisify(fs.readdir);
-const readfile = promisify(fs.readFile);
+import { stat, readdir, readfile } from './utils';
+import { render }                  from './render';
+import { ChildCompiler }           from './compiler';
 
 interface StaticPagesOpts
 {
@@ -81,7 +76,7 @@ class StaticPages
     /**
      * Collect files */
     let   pages: any = {};
-    const pagesPath  = path.resolve(compiler.context, this.inputDir || '/src/pages');
+    const pagesPath  = path.resolve(compiler.context, this.inputDir || 'src/pages');
 
     /**
      * Hook in right before the compilation finished. */
@@ -106,19 +101,24 @@ class StaticPages
      * put into the output dir */
     compiler.hooks.emit.tapPromise('WebpackStaticPages', async (c: Compiler) => {
       const { chunks } = c;
-      const entryChunk = chunks.find((c: Chunk) => c.name === 'app');
+      const entryChunk = chunks.find((c: Chunk) => c.name === 'index');
       const entryFiles = entryChunk ? entryChunk.files.filter((f: string) => /\.js$/.test(f)) : [];
-  
+
       /**
-       * Evaluate compiled pages */
-      const keys     = Object.keys(pages); 
-      const promises = keys.map(k => {
-        const page   = this.evaluateCompilationResult(pages[k].content);
-        return render(page, entryFiles);
-      });
-  
-      const results = await Promise.all(promises);
-      console.log(results);
+       * @TODO (Maurice):
+       * Populate props with some default values like route etc. */
+      const props = {};
+
+      /**
+       * Evaluate compiled pages
+       * and add the html sources to the output. */
+      return Promise.all(Object.keys(pages).map(async k => {
+        const factory = await this.evaluateCompilationResult(pages[k].content);
+        const source  = await render(factory, entryFiles, props);
+
+        const fileOutput     = `${k}.html`; 
+        c.assets[fileOutput] = new RawSource(source);
+      }));
     });
   }
 

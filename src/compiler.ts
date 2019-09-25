@@ -26,12 +26,13 @@
  */
 
 
-import { Chunk, Compiler }   from 'webpack';
-import NodeTargetPlugin      from 'webpack/lib/node/NodeTargetPlugin';
-import NodeTemplatePlugin    from 'webpack/lib/node/NodeTemplatePlugin';
-import LoaderTargetPlugin    from 'webpack/lib/LoaderTargetPlugin';
-import LibraryTemplatePlugin from 'webpack/lib/LibraryTemplatePlugin';
-import SingleEntryPlugin     from 'webpack/lib/SingleEntryPlugin';
+import { Compiler }            from 'webpack';
+import * as ExternalsPlugin    from 'webpack/lib/ExternalsPlugin';
+import * as NodeTargetPlugin   from 'webpack/lib/node/NodeTargetPlugin';
+import * as NodeTemplatePlugin from 'webpack/lib/node/NodeTemplatePlugin';
+import * as LoaderTargetPlugin from 'webpack/lib/LoaderTargetPlugin';
+import * as SingleEntryPlugin  from 'webpack/lib/SingleEntryPlugin';
+import { getModules }          from './utils';
 
 class ChildCompiler
 {
@@ -62,11 +63,14 @@ class ChildCompiler
       publicPath: compilation.outputOptions.publicPath
     };
 
+    const externals                = await getModules();
     const childCompiler            = compilation.createChildCompiler('StaticPages', output);
     childCompiler.context          = compilation.compiler.context;
     childCompiler.inputFileSystem  = compilation.inputFileSystem;
     childCompiler.outputFileSystem = compilation.outputFileSystem;
+
     new NodeTargetPlugin().apply(childCompiler);
+    new ExternalsPlugin('commonjs', [externals]).apply(childCompiler);
     new NodeTemplatePlugin(output).apply(childCompiler);
     new LoaderTargetPlugin('node').apply(childCompiler);
 
@@ -83,6 +87,12 @@ class ChildCompiler
     return new Promise((res, rej) => {
       childCompiler.runAsChild((err: Error, entries: string[], childCompilation: Compiler) => {
         if (err) return rej(err);
+        if (childCompilation.errors && childCompilation.errors.length)
+        {
+          const errorDetails = childCompilation.errors.map((e: any) => e.message + (e.error ? ':\n' + e.error : '')).join('\n');
+          return rej(new Error('Child compilation failed:\n' + errorDetails));
+        }
+
         const pages        = entries ? this.extract(entries, compilation, childCompilation) : [];
         const dependencies = entries ? Array.from(childCompilation.fileDependencies) : [];
 

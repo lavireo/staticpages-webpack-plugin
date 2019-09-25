@@ -7,6 +7,6 @@ package-lock.json
 ##
 # Default dirs
 /tmp
-/dist
+/lib
 /build
 /node_modules

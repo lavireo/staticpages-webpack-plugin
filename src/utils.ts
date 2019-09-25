@@ -1,5 +1,5 @@
 /**
- * render.tsx
+ * utils.ts
  *
  * Author: Maurice T. Meyer
  * E-Mail: maurice@lavireo.com
@@ -26,36 +26,34 @@
  */
 
 
-import { cloneElement, createElement }          from 'react';
-import { renderToString, renderToStaticMarkup } from 'react-dom/server';
-import { ServerStyleSheet, StyleSheetManager }  from 'styled-components'
-import { Document }                             from './document';
+import * as fs       from 'fs';
+import * as path     from 'path';
+import { promisify } from 'util';
 
-function render (page: any, files: string[], props: any = {})
-{
-  const { body, styles } = renderBody(page, props);
-  const bodyHtml         = renderToString(body);
-  const pageHtml         = renderToStaticMarkup(<Document body={bodyHtml} files={files} styles={styles} />);
-  return `<!DOCTYPE html>${pageHtml}`;
-}
+const stat     = promisify(fs.stat);
+const readdir  = promisify(fs.readdir);
+const readfile = promisify(fs.readFile);
+const SECTIONS = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
 
-function renderBody (Page: any, props: any)
+async function getModules ()
 {
-  const sheet = new ServerStyleSheet();
-  try
+  const utils = {}
+  try {
+    const packagePath   = path.join(process.cwd(), './package.json');
+    const packageString = await readfile(packagePath, 'utf8');
+    const packageJson   = JSON.parse(packageString);
+
+    const deps: Set<string> = new Set<string>();
+    SECTIONS.forEach(s => {
+      Object.keys(packageJson[s] || {}).forEach(d => (deps.add(d)));
+    });
+
+    return [...deps];
+  } catch (e)
   {
-    const body = (
-      <StyleSheetManager sheet={sheet.instance}>
-        <Page {...props} />
-      </StyleSheetManager>
-    );
-
-    return {
-      body,
-      styles: sheet.getStyleElement()
-    };
+    return [];
   }
-  finally { sheet.seal(); }
 }
 
-export { render };
+
+export { getModules, stat, readdir, readfile };
