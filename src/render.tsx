@@ -35,8 +35,7 @@ import { Document }                             from './document';
 function render (page: any, files: string[], props: any = {})
 {
   const { body, styles } = renderBody(page, props);
-  const bodyHtml         = renderToString(body);
-  const pageHtml         = renderToStaticMarkup(<Document body={bodyHtml} files={files} styles={styles} />);
+  const pageHtml         = renderToStaticMarkup(<Document body={body} files={files} styles={styles} />);
   return `<!DOCTYPE html>${pageHtml}`;
 }
 
@@ -57,7 +56,7 @@ function renderBody (Page: any, props: any)
     );
 
     return {
-      body,
+      body:   renderToString(body),
       styles: sheet.getStyleElement()
     };
   }
