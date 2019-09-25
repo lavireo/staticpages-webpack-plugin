@@ -1,0 +1,12 @@
+##
+# Misc
+*.DS_Store
+yarn.lock
+package-lock.json
+
+##
+# Default dirs
+/tmp
+/dist
+/build
+/node_modules

@@ -1,0 +1,27 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "jsx":                          "react",
+    "jsxFactory":                   "createElement",
+    "target":                       "es6",
+    "module":                       "commonjs",
+    "moduleResolution":             "node",
+    "outDir":                       "./lib",
+    "emitDecoratorMetadata":        true,
+    "experimentalDecorators":       true,
+    "allowSyntheticDefaultImports": true,
+    "strict":                       true,
+    "noImplicitAny":                true,
+    "noUnusedLocals":               false,
+    "noUnusedParameters":           false,
+    "sourceMap":                    false
+  },
+  "include": [
+    "types/**/*",
+    "src/**/*"
+  ],
+  "exclude": [
+    "./lib",
+    "node_modules"
+  ]
+}
