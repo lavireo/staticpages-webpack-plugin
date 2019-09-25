@@ -1,6 +1,6 @@
 {
   "name": "staticpages-webpack-plugin",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Compile to static html files",
   "repository": "https://github.com/lavireo/staticpages-webpack-plugin.git",
   "author": "Maurice T. Meyer <maurice@lavireo.com>",
