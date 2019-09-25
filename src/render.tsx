@@ -45,11 +45,12 @@ function renderBody (Page: any, props: any)
   const sheet  = new ServerStyleSheet();
   try
   {
+    const Route = (_: any) => <Page {...props} />;
     const body = (
       <StyleSheetManager sheet={sheet.instance}>
         <ServerLocation url={props.url}>
           <Router>
-            <Page {...props} />
+            <Route path="/*" />
           </Router>
         </ServerLocation>
       </StyleSheetManager>
