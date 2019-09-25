@@ -26,9 +26,10 @@
  */
 
 
-import { cloneElement, createElement }          from 'react';
+import { createElement }                        from 'react';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
-import { ServerStyleSheet, StyleSheetManager }  from 'styled-components'
+import { ServerStyleSheet, StyleSheetManager }  from 'styled-components';
+import { Router, ServerLocation }               from '@reach/router';
 import { Document }                             from './document';
 
 function render (page: any, files: string[], props: any = {})
@@ -41,12 +42,16 @@ function render (page: any, files: string[], props: any = {})
 
 function renderBody (Page: any, props: any)
 {
-  const sheet = new ServerStyleSheet();
+  const sheet  = new ServerStyleSheet();
   try
   {
     const body = (
       <StyleSheetManager sheet={sheet.instance}>
-        <Page {...props} />
+        <ServerLocation url={props.url}>
+          <Router>
+            <Page {...props} />
+          </Router>
+        </ServerLocation>
       </StyleSheetManager>
     );
 

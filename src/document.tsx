@@ -46,11 +46,14 @@ class Document extends Component<DocumentProps>
    * use on the serverside. */
   public render ()
   {
+    const { styles } = this.props;
+
     return (
       <html>
         <head>
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
+          { styles }
         </head>
         <body>
 					{ this.renderRoot() }

@@ -107,14 +107,15 @@ class StaticPages
       /**
        * @TODO (Maurice):
        * Populate props with some default values like route etc. */
-      const props = {};
+      const props = { static: true };
 
       /**
        * Evaluate compiled pages
        * and add the html sources to the output. */
       return Promise.all(Object.keys(pages).map(async k => {
-        const factory = await this.evaluateCompilationResult(pages[k].content);
-        const source  = await render(factory, entryFiles, props);
+        const properties = { ...props, url: k };
+        const factory    = await this.evaluateCompilationResult(pages[k].content);
+        const source     = await render(factory, entryFiles, properties);
 
         const fileOutput     = `${k}.html`; 
         c.assets[fileOutput] = new RawSource(source);
