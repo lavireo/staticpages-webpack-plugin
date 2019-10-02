@@ -100,22 +100,34 @@ class StaticPages
      * Hook in right before the assets are
      * put into the output dir */
     compiler.hooks.emit.tapPromise('WebpackStaticPages', async (c: Compiler) => {
-      const { chunks } = c;
-      const entryChunk = chunks.find((c: Chunk) => c.name === 'index');
-      const entryFiles = entryChunk ? entryChunk.files.filter((f: string) => /\.js$/.test(f)) : [];
-
       /**
-       * @TODO (Maurice):
-       * Populate props with some default values like route etc. */
-      const props = { static: true };
+       * Collect required chunks... */
+      const entryFiles: string[] = [];
+      c.chunkGroups.forEach((g: any) => {
+        if (!g.isInitial()) return;
+        for (const chunk of g.chunks)
+        {
+          /**
+           * If there's no name or no files
+           * we'll just skip the chunk. */
+          if (!chunk.name || !chunk.files)
+            continue;
+
+          for (const file of chunk.files) {
+            /**
+             * For now only include .js files */
+            if (/\.js$/.test(file)) entryFiles.push(file);
+          }
+        }
+      });
 
       /**
        * Evaluate compiled pages
        * and add the html sources to the output. */
       return Promise.all(Object.keys(pages).map(async k => {
-        const properties = { ...props, url: k };
-        const factory    = await this.evaluateCompilationResult(pages[k].content);
-        const source     = await render(factory, entryFiles, properties);
+        const props   = { static: true, url: k };
+        const factory = await this.evaluateCompilationResult(pages[k].content);
+        const source  = await render(factory, entryFiles, props);
 
         const fileOutput     = `${k}.html`; 
         c.assets[fileOutput] = new RawSource(source);
