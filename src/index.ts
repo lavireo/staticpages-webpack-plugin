@@ -26,8 +26,7 @@
  */
 
 
-const ERROR_PAGE        = '_error';
-const ERRORS            = {};
+
 
 const EXT               = ['js', 'ts', 'jsx', 'tsx'];
 const EXT_REG           = new RegExp(`\\.+(${EXT.join('|')})$`);
@@ -35,12 +34,19 @@ const EXT_REG           = new RegExp(`\\.+(${EXT.join('|')})$`);
 import * as _                      from 'underscore';
 import * as vm                     from 'vm';
 import * as path                   from 'path';
-import { Chunk, Compiler }         from 'webpack';
+import { Compiler }                from 'webpack';
 import { RawSource }               from 'webpack-sources';
 
-import { stat, readdir, readfile } from './utils';
+import { stat, readdir, asyncFor, asyncMap } from './utils';
 import { render }                  from './render';
 import { ChildCompiler }           from './compiler';
+
+const ERROR_PAGE                         = '_error';
+const ERRORS: { [code: number]: string } = {
+  400: 'Bad Request',
+  404: 'This page could not be found',
+  500: 'Internal Server Error'
+}
 
 interface StaticPagesOpts
 {
@@ -62,7 +68,7 @@ class StaticPages
    * Constructor */
   constructor (opts: StaticPagesOpts = {})
   {
-    this.errors    = opts.errors || [500];
+    this.errors    = opts.errors || [400, 404, 500];
     this.child     = new ChildCompiler();
     this.inputDir  = opts.inputDir;
     this.outputDir = opts.outputDir;
@@ -124,14 +130,28 @@ class StaticPages
       /**
        * Evaluate compiled pages
        * and add the html sources to the output. */
-      return Promise.all(Object.keys(pages).map(async k => {
-        const props   = { static: true, url: k };
-        const factory = await this.evaluateCompilationResult(pages[k].content);
-        const source  = await render(factory, entryFiles, props);
+      return asyncFor(Object.keys(pages), async page => {
+        const key     = page.replace(/^\//g, '');
+        const factory = await this.evaluateCompilationResult(pages[page].content);
 
-        const fileOutput     = `${k}.html`; 
-        c.assets[fileOutput] = new RawSource(source);
-      }));
+        /**
+         * Check if page matches the error page constant as
+         * we have to process this template. */
+        if (key === ERROR_PAGE)
+        {
+          return asyncFor (this.errors, async (code: number) => {
+            const props  = { static: true, code, status: ERRORS[code] };
+            const source = await render(factory, entryFiles, props);
+            c.assets[`${code}.html`] = new RawSource(source);
+          });
+        }
+
+        /**
+         * Handle templates */
+        const props  = { static: true, url: page };
+        const source = await render(factory, entryFiles, props);
+        c.assets[`${key}.html`] = new RawSource(source);
+      });
     });
   }
 

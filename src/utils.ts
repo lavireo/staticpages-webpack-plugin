@@ -35,6 +35,34 @@ const readdir  = promisify(fs.readdir);
 const readfile = promisify(fs.readFile);
 const SECTIONS = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
 
+type IteratorFn<T> = (v: T, i: number, arr: T[]) => Promise<any>;
+async function asyncFor<T> (arr: T[], fn: IteratorFn<T>)
+{
+  for (let i = 0; i < arr.length; i++)
+    await fn(arr[i], i, arr);
+}
+
+async function asyncMap<T> (arr: T[], fn: IteratorFn<T>)
+{
+  const results = [];
+  for (let i = 0; i < arr.length; i++)
+    results.push(await fn(arr[i], i, arr));
+  return results;
+}
+
+async function parallelFor<T> (arr: T[], fn: IteratorFn<T>)
+{
+  await parallelMap(arr, fn);
+}
+
+async function parallelMap<T> (arr: T[], fn: IteratorFn<T>)
+{
+  const results = [];
+  for (let i = 0; i < arr.length; i++)
+    results.push(fn(arr[i], i, arr));
+  return Promise.all(results);
+}
+
 async function getModules ()
 {
   const utils = {}
@@ -56,4 +84,4 @@ async function getModules ()
 }
 
 
-export { getModules, stat, readdir, readfile };
+export { getModules, stat, readdir, readfile, asyncFor, asyncMap, parallelFor, parallelMap };

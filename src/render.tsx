@@ -47,11 +47,15 @@ function renderBody (Page: any, props: any)
     const Route = (_: any) => <Page {...props} />;
     const body = (
       <StyleSheetManager sheet={sheet.instance}>
-        <ServerLocation url={props.url}>
-          <Router>
-            <Route path="/*" />
-          </Router>
-        </ServerLocation>
+        { props.url ?
+          <ServerLocation url={props.url}>
+            <Router>
+              <Route path="/*" />
+            </Router>
+          </ServerLocation>
+        : 
+          <Page {...props} />
+        }
       </StyleSheetManager>
     );
 
